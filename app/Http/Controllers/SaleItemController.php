@@ -6,6 +6,7 @@ use App\Models\SaleItem;
 use App\Models\Sale;
 use App\Models\Product;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 
 class SaleItemController extends Controller
 {
@@ -31,8 +32,17 @@ class SaleItemController extends Controller
             'unit_price' => 'required|numeric|min:0',
         ]);
 
-        $saleItem = SaleItem::create($request->only('sale_id', 'product_id', 'quantity', 'unit_price'));
-        $saleItem->sale->recalculateTotal();
+        // OPTION 2: Calling the Stored Procedure (which handles TCL internally)//
+        try {
+            DB::statement('CALL sp_add_sale_item(?, ?, ?, ?)', [
+                $request->sale_id,
+                $request->product_id,
+                $request->quantity,
+                $request->unit_price
+            ]);
+        } catch (\Exception $e) {
+            return redirect()->back()->withErrors('Transaction Failed: ' . $e->getMessage());
+        }
 
         return redirect()->route('sale_items.index')
             ->with('success', 'Sale item created successfully.');
@@ -60,8 +70,10 @@ class SaleItemController extends Controller
             'unit_price' => 'required|numeric|min:0',
         ]);
 
-        $sale_item->update($request->only('sale_id', 'product_id', 'quantity', 'unit_price'));
-        $sale_item->sale->recalculateTotal();
+        DB::transaction(function () use ($request, $sale_item) {
+            $sale_item->update($request->only('sale_id', 'product_id', 'quantity', 'unit_price'));
+            $sale_item->sale->recalculateTotal();
+        });
 
         return redirect()->route('sale_items.index')
             ->with('success', 'Sale item updated successfully.');
@@ -69,9 +81,11 @@ class SaleItemController extends Controller
 
     public function destroy(SaleItem $sale_item)
     {
-        $sale = $sale_item->sale;
-        $sale_item->delete();
-        $sale->recalculateTotal();
+        DB::transaction(function () use ($sale_item) {
+            $sale = $sale_item->sale;
+            $sale_item->delete();
+            $sale->recalculateTotal();
+        });
         
         return redirect()->route('sale_items.index')
             ->with('success', 'Sale item deleted successfully.');

@@ -45,6 +45,13 @@
             <a href="{{ route('sale_items.index') }}" class="{{ request()->routeIs('sale_items.*') ? 'active' : '' }}">
                 <i class="bi bi-list-ul me-2"></i>Sale Items
             </a>
+            <div class="nav-header mt-2">Reports (Views)</div>
+            <a href="{{ route('reports.inventory') }}" class="{{ request()->routeIs('reports.inventory') ? 'active' : '' }}">
+                <i class="bi bi-file-earmark-bar-graph me-2"></i>Inventory View
+            </a>
+            <a href="{{ route('reports.sales_summary') }}" class="{{ request()->routeIs('reports.sales_summary') ? 'active' : '' }}">
+                <i class="bi bi-graph-up me-2"></i>Sales Summary
+            </a>
         </div>
     </div>
 

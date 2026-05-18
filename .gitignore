@@ -24,3 +24,13 @@ _ide_helper.php
 Homestead.json
 Homestead.yaml
 Thumbs.db
+# XAMPP / Windows specific
+*.bak
+
+# Laravel storage (keep structure, ignore contents)
+/storage/app/public/*
+!/storage/app/public/.gitkeep
+
+# Uploaded files (profile pictures, etc.)
+/storage/app/private/*
+!/storage/app/private/.gitkeep
